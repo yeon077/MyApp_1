@@ -1,0 +1,45 @@
+import sqlite3
+
+# Connect to the database (or create it)
+conn = sqlite3.connect('login.db')
+cursor = conn.cursor()
+
+# Create users table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
+)
+''')
+
+# Function to add a user
+def add_user(username, password):
+    try:
+        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+# Function to verify login
+def verify_login(username, password):
+    cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    return cursor.fetchone() is not None
+
+# Example usage:
+if __name__ == "__main__":
+    # Add a user
+    if add_user('testuser', 'testpass'):
+        print('User added successfully.')
+    else:
+        print('Username already exists.')
+
+    # Verify login
+    if verify_login('testuser', 'testpass'):
+        print('Login successful!')
+    else:
+        print('Invalid credentials.')
+
+# Close the connection when done
+conn.close()
